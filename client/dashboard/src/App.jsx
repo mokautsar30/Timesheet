@@ -1,19 +1,14 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import React from 'react';
+import { ThemeProvider } from '@mui/material/styles';
+import theme from '../theme.js';
+import Homepage from './pages/home/Homepage.jsx'; 
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
-    <>
-	<div>
-		<h1 className='flex flex-col justify-center items-center bg-black text-white'>
-			this is app
-		</h1>
-	</div>
-    </>
-  )
-}
+    <ThemeProvider theme={theme}>
+      <Homepage />
+    </ThemeProvider>
+  );
+};
 
-export default App
+export default App;

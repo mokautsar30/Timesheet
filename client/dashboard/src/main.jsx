@@ -6,18 +6,17 @@ import {
 } from "react-router-dom";
 import App from './App.jsx'
 import './index.css'
-import Homepage from './pages/home/Homepage.jsx';
 import LoginPage from './pages/login/LoginPage.jsx';
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <Homepage/>
-  },
-  {
     path: '/login',
     element: <LoginPage/>
-  }
+  },
+  {
+    path: "/",
+    element: <App/>
+  },
 ]);
 
 
