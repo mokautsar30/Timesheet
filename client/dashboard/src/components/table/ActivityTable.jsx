@@ -5,6 +5,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
+import { IoFilter } from "react-icons/io5";
 
 const columns = [
   { field: "id", headerName: "ID", width: 70 },
@@ -39,7 +40,19 @@ const columns = [
     field: "action",
     headerName: "Aksi",
     type: "time",
-    width: 90,
+    width: 200,
+    renderCell: ({ row }) => (
+      <div>
+        <button
+          className="font-extrabold px-2"
+          onClick={() => deleteRow(row.id)}
+        >
+          Edit
+        </button>
+        <button onClick={() => deleteRow(row.id)}>Delete</button>
+      </div>
+    ),
+    headerAlign: "center",
   },
 ];
 
@@ -106,20 +119,6 @@ export default function DataTable() {
     console.log(`Deleting row with ID ${id}`);
   };
 
-  const actionColumn = {
-    field: "action",
-    headerName: "Aksi",
-    width: 200,
-    renderCell: ({ row }) => {
-      return (
-        <div>
-          <button className=" font-extrabold px-2" onClick={() => deleteRow(row.id)}>Edit</button>
-          <button onClick={() => deleteRow(row.id)}>Delete</button>
-        </div>
-      );
-    }
-  };
-
   return (
     <div style={{ height: 350, width: "100%" }}>
       <div
@@ -134,9 +133,12 @@ export default function DataTable() {
           label="Search"
           variant="outlined"
           onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: 400 }}
         />
         <FormControl variant="outlined">
-          <InputLabel>Filter by Project</InputLabel>
+          <InputLabel>
+            <IoFilter />
+          </InputLabel>
           <Select
             value={projectFilter}
             onChange={(e) => setProjectFilter(e.target.value)}
@@ -152,12 +154,16 @@ export default function DataTable() {
       </div>
       <DataGrid
         rows={filteredRows}
-        columns={[...columns, actionColumn]}
+        columns={[...columns]}
         hideFooter
+        autoHeight
         pageSizeOptions={[5, 10]}
         disableCheckboxSelection
         disableRowSelectionOnClick
         disableColumnSelector
+        disableColumnResize
+        disableColumnReorder
+        disableColumnScroll
       />
     </div>
   );
