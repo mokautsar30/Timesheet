@@ -1,8 +1,11 @@
 import React from 'react'
+import UserSetting from '../../components/topSection/UserSetting'
 
 const Setting = () => {
   return (
-    <div>Setting</div>
+    <>
+      <UserSetting/>
+    </>
   )
 }
 
