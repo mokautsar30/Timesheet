@@ -1,19 +1,20 @@
-import * as React from 'react';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Box from '@mui/material/Box';
-import Activity from '../topSection/Activity'
-import UserSetting from '../topSection/UserSetting';
+import * as React from "react";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Box from "@mui/material/Box";
+import Activity from "../topSection/Activity";
+import UserSetting from "../topSection/UserSetting";
+import Setting from "../../pages/home/Setting";
 
 const ColorTabs = () => {
-  const [value, setValue] = React.useState('one');
+  const [value, setValue] = React.useState("one");
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: "100%" }}>
       <Tabs
         value={value}
         onChange={handleChange}
@@ -23,11 +24,10 @@ const ColorTabs = () => {
         <Tab value="one" label="Daftar Kegiatan" />
         <Tab value="two" label="Pengaturan" />
       </Tabs>
-      {value === 'one' && <Activity />}
-      {value === 'two' && <UserSetting />}
+      {value === "one" && <Activity />}
+      {value === "two" && <Setting />}
     </Box>
   );
-}
+};
 
-
-export default ColorTabs
+export default ColorTabs;

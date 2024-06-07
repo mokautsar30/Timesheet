@@ -5,7 +5,7 @@ const UserSetting = () => {
     <>
       <div className="p-56">
         <form>
-          <div className="flex w-96 flex-col space-y-5 rounded-lg border py-10 px-5 shadow-xl mx-auto">
+          <div className="flex w-96 flex-col space-y-5 rounded-lg border py-10 px-5 shadow-xl mx-auto bg-white">
             <div className="mx-auto mb-2 space-y-3">
               <h1 className=" text-3xl font-bold text-gray-700">Setting</h1>
             </div>

@@ -7,6 +7,7 @@ import {
 import App from './App.jsx'
 import './index.css'
 import LoginPage from './pages/login/LoginPage.jsx';
+import Setting from './pages/home/Setting.jsx';
 
 const router = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
     path: "/",
     element: <App/>
   },
+  {
+    path: '/setting',
+    element: <Setting/>
+  }
 ]);
 
 
