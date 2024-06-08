@@ -6,6 +6,8 @@ import MenuItem from "@mui/material/MenuItem";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
 import { IoFilter } from "react-icons/io5";
+import { getProjects, deleteActivity } from "../../services/api";
+import EditActivity from "./EditActivity";
 
 const columns = [
   { field: "id", headerName: "ID", width: 70 },
@@ -13,7 +15,7 @@ const columns = [
   { field: "project", headerName: "Nama Proyek", width: 130 },
   {
     field: "startDate",
-    headerName: "Tanggal mulai",
+    headerName: "Tanggal Mulai",
     width: 130,
   },
   {
@@ -39,13 +41,12 @@ const columns = [
   {
     field: "action",
     headerName: "Aksi",
-    type: "time",
     width: 200,
     renderCell: ({ row }) => (
       <div>
         <button
           className="font-extrabold px-2"
-          onClick={() => deleteRow(row.id)}
+          onClick={() => handleEditClick(row)}
         >
           Edit
         </button>
@@ -56,7 +57,7 @@ const columns = [
   },
 ];
 
-const rows = [
+const initialRows = [
   {
     id: 1,
     activity: "menghias",
@@ -67,56 +68,90 @@ const rows = [
     endTime: new Date().toLocaleTimeString(),
     duration: 8,
   },
-  {
-    id: 2,
-    activity: "meeting",
-    project: "dev",
-    startDate: new Date().toLocaleDateString(),
-    endDate: new Date().toLocaleDateString(),
-    startTime: new Date().toLocaleTimeString(),
-    endTime: new Date().toLocaleTimeString(),
-    duration: 2,
-  },
-  {
-    id: 3,
-    activity: "design",
-    project: "marketing",
-    startDate: new Date().toLocaleDateString(),
-    endDate: new Date().toLocaleDateString(),
-    startTime: new Date().toLocaleTimeString(),
-    endTime: new Date().toLocaleTimeString(),
-    duration: 5,
-  },
-  {
-    id: 4,
-    activity: "review",
-    project: "qa",
-    startDate: new Date().toLocaleDateString(),
-    endDate: new Date().toLocaleDateString(),
-    startTime: new Date().toLocaleTimeString(),
-    endTime: new Date().toLocaleTimeString(),
-    duration: 3,
-  },
 ];
 
-export default function DataTable() {
+export default function DataTable({ activities }) {
   const [searchText, setSearchText] = React.useState("");
   const [projectFilter, setProjectFilter] = React.useState("");
-  const [filteredRows, setFilteredRows] = React.useState(rows);
+  const [filteredRows, setFilteredRows] = React.useState(initialRows);
+  const [projects, setProjects] = React.useState([]);
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [currentActivity, setCurrentActivity] = React.useState(null);
+  const handleClose = () => setIsEditModalOpen(false);
 
   React.useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const { data } = await getProjects();
+        setProjects(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  React.useEffect(() => {
+    const projectMap = projects.reduce((map, project) => {
+      map[project.id] = project.projectName;
+      return map;
+    }, {});
+
+    const updatedRows = activities.map((activity) => ({
+      id: activity.id,
+      activity: activity.activityName || "",
+      project: projectMap[activity.projectId] || "",
+      startDate: new Date(activity.dateStart).toLocaleDateString(),
+      endDate: new Date(activity.dateEnd).toLocaleDateString(),
+      startTime: activity.timeStart,
+      endTime: activity.timeEnd,
+      duration: (
+        (new Date(`${activity.dateEnd}T${activity.timeEnd}`) -
+          new Date(`${activity.dateStart}T${activity.timeStart}`)) /
+        (1000 * 60 * 60)
+      ).toFixed(2),
+    }));
+
     setFilteredRows(
-      rows.filter(
+      updatedRows.filter(
         (row) =>
           (row.activity.toLowerCase().includes(searchText.toLowerCase()) ||
             row.project.toLowerCase().includes(searchText.toLowerCase())) &&
           (projectFilter === "" || row.project === projectFilter)
       )
     );
-  }, [searchText, projectFilter]);
+  }, [searchText, projectFilter, activities, projects, deleteActivity]);
 
-  const deleteRow = (id) => {
-    console.log(`Deleting row with ID ${id}`);
+  const deleteRow = async (id) => {
+    try {
+      await deleteActivity(id);
+      setFilteredRows(filteredRows.filter((row) => row.id !== id));
+      console.log(`Activity with ID ${id} deleted successfully`);
+    } catch (error) {
+      console.error(`Error deleting activity with ID ${id}:`, error);
+    }
+  };
+
+  const handleEditClick = (activity) => {
+    console.log("Edit button clicked");
+    const formattedStartDate = new Date(activity.startDate)
+      .toISOString()
+      .split("T")[0];
+    const formattedEndDate = new Date(activity.endDate)
+      .toISOString()
+      .split("T")[0];
+
+    setCurrentActivity({
+      ...activity,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsEditModalOpen(false);
+    setCurrentActivity(null);
   };
 
   return (
@@ -145,26 +180,56 @@ export default function DataTable() {
             label="Filter by Project"
           >
             <MenuItem value="">All</MenuItem>
-            <MenuItem value="ui ux">UI UX</MenuItem>
-            <MenuItem value="dev">Dev</MenuItem>
-            <MenuItem value="marketing">Marketing</MenuItem>
-            <MenuItem value="qa">QA</MenuItem>
+            {projects.map((project) => (
+              <MenuItem key={project.id} value={project.projectName}>
+                {project.projectName}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
       </div>
       <DataGrid
         rows={filteredRows}
-        columns={[...columns]}
-        hideFooter
-        autoHeight
-        pageSizeOptions={[5, 10]}
+        columns={columns.map((column) => ({
+          ...column,
+          renderCell: (params) => {
+            if (column.field === "action") {
+              return (
+                <div>
+                  <button
+                    className="font-extrabold px-2"
+                    onClick={() => handleEditClick(params.row)}
+                  >
+                    Edit
+                  </button>
+                  <button onClick={() => deleteRow(params.row.id)}>
+                    Delete
+                  </button>
+                </div>
+              );
+            }
+            return <div>{params.value}</div>;
+          },
+        }))}
+        pageSizeOptions={[5, 10, 20, 50, 100]}
+        pageSize={10}
         disableCheckboxSelection
         disableRowSelectionOnClick
         disableColumnSelector
         disableColumnResize
         disableColumnReorder
-        disableColumnScroll
       />
+      {isEditModalOpen && (
+        <div className="modal-overlay" onClick={handleClose}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <span className="modal-close" onClick={handleClose}>
+              &times;
+            </span>
+            <h2 className="text-xl font-bold mb-4">Edit Kegiatan</h2>
+            <EditActivity activity={currentActivity} onClose={handleClose} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from "react";
 import DropdownWithAdd from "../ui/Dropdown";
-import { addActivities, getProjects, getActivities, addProject } from "../../services/api";
+import {
+  addActivities,
+  getProjects,
+  getActivities,
+  addProject,
+  updateActivity,
+} from "../../services/api";
 
-const CreateActivity = ({ onClose, onActivityAdded }) => {
+const EditActivity = ({ activity, onClose }) => {
   const [formData, setFormData] = useState({
-    dateStart: "",
-    dateEnd: "",
-    timeStart: "",
-    timeEnd: "",
-    activityName: "",
-    projectId: "",
-    totalPrice: 0,
+    id: activity.id,
+    dateStart: activity.startDate,
+    dateEnd: activity.endDate,
+    timeStart: activity.startTime,
+    timeEnd: activity.endTime,
+    activityName: activity.activity,
+    projectId: activity.projectId,
   });
-
   const [projectOptions, setProjectOptions] = useState([]);
 
   useEffect(() => {
@@ -31,6 +36,7 @@ const CreateActivity = ({ onClose, onActivityAdded }) => {
     };
 
     fetchProjects();
+    console.log("EditActivity component mounted");
   }, []);
 
   const handleAddProject = async (newProject) => {
@@ -38,7 +44,10 @@ const CreateActivity = ({ onClose, onActivityAdded }) => {
       const { data } = await addProject({ projectName: newProject.label });
       const newOption = { value: data.id, label: data.projectName };
       setProjectOptions([...projectOptions, newOption]);
-      setFormData((prevFormData) => ({ ...prevFormData, projectId: newOption.value }));
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        projectId: newOption.value,
+      }));
     } catch (error) {
       console.error("Error adding project:", error);
     }
@@ -55,16 +64,12 @@ const CreateActivity = ({ onClose, onActivityAdded }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.projectId) {
-      alert("Please select a project.");
-      return;
-    }
     try {
-      const { data } = await addActivities(formData);
-      onActivityAdded(data);
+      await updateActivity(formData.id, formData);
       onClose();
+      window.location.reload();
     } catch (error) {
-      console.error("Error adding activity:", error);
+      console.error("Error updating activity:", error);
     }
   };
 
@@ -160,4 +165,4 @@ const CreateActivity = ({ onClose, onActivityAdded }) => {
   );
 };
 
-export default CreateActivity;
+export default EditActivity;

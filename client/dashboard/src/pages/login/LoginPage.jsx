@@ -1,16 +1,45 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from 'axios'
 import { useNavigate } from "react-router-dom";
+import {loginUser} from '../../services/api'
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [input, setInput] = useState({
+    email: "",
+    password: "",
+  })
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setInput({
+      ...input,
+      [name]: value,
+    });
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    try {
+      const {data} = await loginUser(input)
+      localStorage.access_token = data.access_token;
+      localStorage.setItem('id', data.id )
+      navigate('/')
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <>
       <div className="p-56">
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className="flex w-96 flex-col space-y-5 rounded-lg border py-10 px-5 shadow-xl mx-auto">
             <div className="mx-auto mb-2 space-y-3">
               <h1 className=" text-3xl font-bold text-gray-700">
-                Log into Timesheet
+                Log into <span className=" text-customRed">
+                  Timesheet
+                </span>
               </h1>
               <p className="text-gray-500">Login to access your account</p>
             </div>
@@ -18,7 +47,9 @@ const LoginPage = () => {
               <div className="relative mt-2 w-full">
                 <input
                   type="text"
+                  name="email"
                   id="email"
+                  onChange={handleChange}
                   className="border-1 peer block w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-2.5 pb-2.5 pt-4 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-0"
                   placeholder=" "
                 />
@@ -32,7 +63,9 @@ const LoginPage = () => {
               <div className="relative mt-2 w-full">
                 <input
                   type="text"
+                  name="password"
                   id="password"
+                  onChange={handleChange}
                   className="border-1 peer block w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-2.5 pb-2.5 pt-4 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-0"
                   placeholder=" "
                 />
@@ -44,9 +77,7 @@ const LoginPage = () => {
             </div>
 
             <button
-              onClick={() => {
-                navigate("/");
-              }}
+            type="submit"
               className="rounded-lg bg-blue-600 py-3 font-bold text-white"
             >
               Login
