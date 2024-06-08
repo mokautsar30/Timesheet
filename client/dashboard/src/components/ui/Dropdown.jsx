@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import { MdAdd } from "react-icons/md";
 
-const DropdownWithAdd = ({ options, onAdd }) => {
+const DropdownWithAdd = ({ options, onAdd, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState("");
   const [newProject, setNewProject] = useState("");
@@ -13,13 +13,18 @@ const DropdownWithAdd = ({ options, onAdd }) => {
 
   const handleAddProject = () => {
     if (newProject.trim() !== "") {
-      onAdd(newProject);
+      const newOption = { value: newProject, label: newProject };
+      onAdd(newOption);
+      setSelectedOption(newOption.label);
+      onSelect(newOption.value);
       setNewProject("");
+      setIsOpen(false);
     }
   };
 
   const handleSelectOption = (option) => {
     setSelectedOption(option.label);
+    onSelect(option.value);
     setIsOpen(false);
   };
 
