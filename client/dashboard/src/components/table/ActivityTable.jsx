@@ -8,54 +8,11 @@ import FormControl from "@mui/material/FormControl";
 import { IoFilter } from "react-icons/io5";
 import { getProjects, deleteActivity } from "../../services/api";
 import EditActivity from "./EditActivity";
-
-const columns = [
-  { field: "id", headerName: "ID", width: 70 },
-  { field: "activity", headerName: "Judul Kegiatan", width: 330 },
-  { field: "project", headerName: "Nama Proyek", width: 130 },
-  {
-    field: "startDate",
-    headerName: "Tanggal Mulai",
-    width: 130,
-  },
-  {
-    field: "endDate",
-    headerName: "Tanggal Berakhir",
-    width: 130,
-  },
-  {
-    field: "startTime",
-    headerName: "Waktu Mulai",
-    width: 130,
-  },
-  {
-    field: "endTime",
-    headerName: "Waktu Berakhir",
-    width: 130,
-  },
-  {
-    field: "duration",
-    headerName: "Durasi",
-    width: 130,
-  },
-  {
-    field: "action",
-    headerName: "Aksi",
-    width: 200,
-    renderCell: ({ row }) => (
-      <div>
-        <button
-          className="font-extrabold px-2"
-          onClick={() => handleEditClick(row)}
-        >
-          Edit
-        </button>
-        <button onClick={() => deleteRow(row.id)}>Delete</button>
-      </div>
-    ),
-    headerAlign: "center",
-  },
-];
+import { FaEdit } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
+import { transformData } from "../../helpers/dataTransform";
+import { columns } from "../table/ColumnConfig";
+import Swal from "sweetalert2";
 
 const initialRows = [
   {
@@ -92,44 +49,40 @@ export default function DataTable({ activities }) {
   }, []);
 
   React.useEffect(() => {
-    const projectMap = projects.reduce((map, project) => {
-      map[project.id] = project.projectName;
-      return map;
-    }, {});
-
-    const updatedRows = activities.map((activity) => ({
-      id: activity.id,
-      activity: activity.activityName || "",
-      project: projectMap[activity.projectId] || "",
-      startDate: new Date(activity.dateStart).toLocaleDateString(),
-      endDate: new Date(activity.dateEnd).toLocaleDateString(),
-      startTime: activity.timeStart,
-      endTime: activity.timeEnd,
-      duration: (
-        (new Date(`${activity.dateEnd}T${activity.timeEnd}`) -
-          new Date(`${activity.dateStart}T${activity.timeStart}`)) /
-        (1000 * 60 * 60)
-      ).toFixed(2),
-    }));
-
-    setFilteredRows(
-      updatedRows.filter(
-        (row) =>
-          (row.activity.toLowerCase().includes(searchText.toLowerCase()) ||
-            row.project.toLowerCase().includes(searchText.toLowerCase())) &&
-          (projectFilter === "" || row.project === projectFilter)
-      )
+    const transformedData = transformData(
+      activities,
+      projects,
+      searchText,
+      projectFilter
     );
+    setFilteredRows(transformedData);
   }, [searchText, projectFilter, activities, projects, deleteActivity]);
 
   const deleteRow = async (id) => {
-    try {
-      await deleteActivity(id);
-      setFilteredRows(filteredRows.filter((row) => row.id !== id));
-      console.log(`Activity with ID ${id} deleted successfully`);
-    } catch (error) {
-      console.error(`Error deleting activity with ID ${id}:`, error);
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteActivity(id);
+          setFilteredRows(filteredRows.filter((row) => row.id !== id));
+          Swal.fire("Deleted!", "Your activity has been deleted.", "success");
+        } catch (error) {
+          console.error(`Error deleting activity with ID ${id}:`, error);
+          Swal.fire(
+            "Error!",
+            "There was an error deleting your activity.",
+            "error"
+          );
+        }
+      }
+    });
   };
 
   const handleEditClick = (activity) => {
@@ -153,6 +106,34 @@ export default function DataTable({ activities }) {
     setIsEditModalOpen(false);
     setCurrentActivity(null);
   };
+
+  const displayColumns = [
+    { field: "displayId", headerName: "ID", width: 90 },
+    ...columns.map((column) => ({
+      ...column,
+      renderCell: (params) => {
+        if (column.field === "action") {
+          return (
+            <div className="justify-center items-center text-center">
+              <button
+                className="font-extrabold px-2 text-green-600"
+                onClick={() => handleEditClick(params.row)}
+              >
+                <FaEdit />
+              </button>
+              <button
+                className="text-red-600 font-extrabold px-2"
+                onClick={() => deleteRow(params.row.id)}
+              >
+                <MdDelete />
+              </button>
+            </div>
+          );
+        }
+        return <div>{params.value}</div>;
+      },
+    })),
+  ];
 
   return (
     <div style={{ height: 350, width: "100%" }}>
@@ -190,27 +171,7 @@ export default function DataTable({ activities }) {
       </div>
       <DataGrid
         rows={filteredRows}
-        columns={columns.map((column) => ({
-          ...column,
-          renderCell: (params) => {
-            if (column.field === "action") {
-              return (
-                <div>
-                  <button
-                    className="font-extrabold px-2"
-                    onClick={() => handleEditClick(params.row)}
-                  >
-                    Edit
-                  </button>
-                  <button onClick={() => deleteRow(params.row.id)}>
-                    Delete
-                  </button>
-                </div>
-              );
-            }
-            return <div>{params.value}</div>;
-          },
-        }))}
+        columns={displayColumns}
         pageSizeOptions={[5, 10, 20, 50, 100]}
         pageSize={10}
         disableCheckboxSelection

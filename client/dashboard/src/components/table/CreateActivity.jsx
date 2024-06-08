@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import DropdownWithAdd from "../ui/Dropdown";
-import { addActivities, getProjects, getActivities, addProject } from "../../services/api";
+import {
+  addActivities,
+  getProjects,
+  getActivities,
+  addProject,
+} from "../../services/api";
+import Swal from 'sweetalert2';
 
 const CreateActivity = ({ onClose, onActivityAdded }) => {
   const [formData, setFormData] = useState({
@@ -38,7 +44,10 @@ const CreateActivity = ({ onClose, onActivityAdded }) => {
       const { data } = await addProject({ projectName: newProject.label });
       const newOption = { value: data.id, label: data.projectName };
       setProjectOptions([...projectOptions, newOption]);
-      setFormData((prevFormData) => ({ ...prevFormData, projectId: newOption.value }));
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        projectId: newOption.value,
+      }));
     } catch (error) {
       console.error("Error adding project:", error);
     }
@@ -56,15 +65,28 @@ const CreateActivity = ({ onClose, onActivityAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.projectId) {
-      alert("Please select a project.");
+      Swal.fire({
+        icon: 'warning',
+        title: 'Warning',
+        text: 'Please select a project.',
+      });
       return;
     }
     try {
       const { data } = await addActivities(formData);
       onActivityAdded(data);
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Activity added successfully!',
+      });
       onClose();
     } catch (error) {
-      console.error("Error adding activity:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Error adding activity!',
+      });
     }
   };
 
@@ -150,7 +172,7 @@ const CreateActivity = ({ onClose, onActivityAdded }) => {
         <div className="mt-6">
           <button
             type="submit"
-            className="w-full p-3 bg-customRed text-white rounded-md hover:bg-blue-600"
+            className="w-full p-3 bg-customRed text-white rounded-md hover:bg-red-600"
           >
             Simpan
           </button>

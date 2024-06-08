@@ -49,7 +49,7 @@ const DropdownWithAdd = ({ options, onAdd, onSelect }) => {
             />
             <button
               onClick={handleAddProject}
-              className="ml-2 p-2 bg-customRed text-white rounded-md hover:bg-blue-600"
+              className="ml-2 p-2 bg-customRed text-white rounded-md hover:bg-red-600"
             >
               <MdAdd size={20} />
             </button>

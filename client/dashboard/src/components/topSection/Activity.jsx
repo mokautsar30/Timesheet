@@ -3,6 +3,7 @@ import DataTable from "../table/ActivityTable";
 import { FaPlusCircle } from "react-icons/fa";
 import CreateActivity from "../table/CreateActivity";
 import { getActivities } from "../../services/api";
+import { calculateTotalDuration } from "../../helpers/durationCalculation";
 
 const Activity = () => {
   const [open, setOpen] = useState(false);
@@ -10,12 +11,18 @@ const Activity = () => {
   const handleClose = () => setOpen(false);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalDuration, setTotalDuration] = useState("");
 
   useEffect(() => {
     const fetchActivities = async () => {
       try {
         const { data } = await getActivities();
-        setActivities(data);
+        setActivities(
+          data.map((activity, index) => ({
+            ...activity,
+            displayId: index + 1,
+          }))
+        );
         setLoading(false);
       } catch (error) {
         console.error("Error fetching activities:", error);
@@ -26,8 +33,15 @@ const Activity = () => {
     fetchActivities();
   }, []);
 
+  useEffect(() => {
+    setTotalDuration(calculateTotalDuration(activities));
+  }, [activities]);
+
   const handleActivityAdded = (newActivity) => {
-    setActivities((prevActivities) => [...prevActivities, newActivity]);
+    setActivities((prevActivities) => [
+      ...prevActivities,
+      { ...newActivity, displayId: prevActivities.length + 1 },
+    ]);
   };
 
   return (
@@ -50,7 +64,7 @@ const Activity = () => {
           <h2 className=" font-nunito text-blue-400 font-medium">
             Total Durasi
           </h2>
-          <h2>8 jam 10 menit</h2>
+          <h2>{totalDuration}</h2>
         </div>
         <div className=" flex flex-row justify-between px-4 ">
           <h2 className=" font-nunito font-extrabold text-blue-400 text-xl">
