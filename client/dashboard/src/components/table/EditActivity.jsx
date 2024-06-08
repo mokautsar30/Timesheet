@@ -7,6 +7,7 @@ import {
   addProject,
   updateActivity,
 } from "../../services/api";
+import Swal from 'sweetalert2';
 
 const EditActivity = ({ activity, onClose }) => {
   const [formData, setFormData] = useState({
@@ -66,10 +67,19 @@ const EditActivity = ({ activity, onClose }) => {
     e.preventDefault();
     try {
       await updateActivity(formData.id, formData);
-      onClose();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Activity updated successfully!',
+        timer: 1500,
+      });
       window.location.reload();
     } catch (error) {
-      console.error("Error updating activity:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Error updating activity!',
+      });
     }
   };
 
