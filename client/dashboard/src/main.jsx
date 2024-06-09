@@ -14,10 +14,6 @@ import Swal from 'sweetalert2';
 const authHome = () => {
 	const access_token = localStorage.access_token
 	if(!access_token) {
-		Swal.fire({
-			icon: 'error',
-			title: 'You must login first',
-		});
 		throw redirect('/login')
 	}
 	return null
